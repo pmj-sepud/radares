@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 import os
+import sys
 import xlrd
 import json
 import boto3
 import xlwt
 from io import BytesIO
 import time
+import dotenv
+import pandas as pd
 
-def create_clean_file():
+project_dir = os.path.join(os.pardir)
+sys.path.append(project_dir)
+dotenv_path = os.path.join(project_dir,'.env')
+dotenv.load_dotenv(dotenv_path)
+
+
+def create_empty_file():
     clean_file = xlwt.Workbook(encoding='utf-8')
     tab = clean_file.add_sheet('tab1')
     tab.write(0, 0, 'Endereco')
@@ -35,37 +44,9 @@ def create_clean_file():
 
     return clean_file
 
-#Get equipment list
-with open('equipamentos.json') as json_data:
-    equip_list = json.load(json_data)
-equip_dict = {i['equipamento']: i for i in equip_list}
-
-s3 = boto3.client('s3')
-bucket="monit-data"
-#Iterate over all s3 raw data objects
-all_raw_files = []
-paginator = s3.get_paginator('list_objects')
-page_iterator = paginator.paginate(Bucket=bucket, Prefix="raw/")
-for page in page_iterator:
-    all_raw_files += [c["Key"].split("/", 1)[1] for c in page["Contents"]]
-
-#Iterate over all s3 clean data objectsall_raw_files = []
-all_clean_files = []
-page_iterator = paginator.paginate(Bucket=bucket, Prefix="clean/")
-for page in page_iterator:
-    if "Contents" not in page: #in case there is no clean files yet
-        break
-    all_clean_files += [c["Key"].split("/", 1)[1]  for c in page["Contents"]]
-
-all_files = [file for file in all_raw_files if file not in all_clean_files]
-
-#Create cleaned workbook
-for file in all_files:
-    start = time.time()
-
-    #Read raw file
-    read_key = "raw/" + file
-    obj = s3.get_object(Bucket=bucket, Key=read_key)
+def clean_file(bucket, key, s3_client):
+    #Read incoming file
+    obj = s3.get_object(Bucket=bucket, Key=key)
     wb = xlrd.open_workbook(file_contents=obj['Body'].read())
     sheet = wb.sheets()[0]
     len_data_block = 96
@@ -82,7 +63,7 @@ for file in all_files:
         raise Exception("Equipamento dentro do arquivo não bate com equipamento no nome do arquivo ")
 
     #Create clean file
-    clean_file = create_clean_file()
+    clean_file = create_empty_file()
     tab = clean_file.get_sheet("tab1")
 
     #Define template type
@@ -93,7 +74,7 @@ for file in all_files:
     elif (sheet.nrows==205) and (sheet.cell(201,1).value.strip() == "Total Geral"):
         template = 3
     else:
-        print("No template was found for ", equip, date)
+        print("Nenhum template foi identificado para ", equip, date)
         continue
 
     if template == 1:
@@ -162,13 +143,31 @@ for file in all_files:
             tab.write(write_row, 7, date)
             tab.write(write_row, 8, equip)
 
-    #Save to s3 object
-    stream = BytesIO()
-    clean_file.save(stream)
-    stream.seek(0)
-    write_key = "clean/" + equip + "/" + date + '.xlsx'
-    s3.put_object(Body=stream.read(), Bucket='monit-data', Key=write_key)
-    
-    end = time.time()
-    duration = str(round(end - start))
-    print("Successfully stored equip " + equip + ", on date " + date + ", in " + duration + " s.")
+            return clean_file
+
+#Connect to S3 and check existing reports
+s3 = boto3.client('s3')
+processed_bucket="production-monitran-data-processed"
+clean_file = clean_file()
+
+#Save to s3 object
+stream = BytesIO()
+clean_file.save(stream)
+stream.seek(0)
+write_key = equip + "/" + date + '.xlsx'
+s3.put_object(Body=stream.read(), Bucket=processed_bucket, Key=write_key)
+
+#Insert data into the database
+obj = s3.get_object(Bucket=processed_bucket, Key=write_key)
+df = pd.read_excel(obj['Body'].read())
+import pdb
+pdb.set_trace()
+
+
+#If we got here, the database has been populated and the clean document has been successfully stored.
+#Only now should we proceed and delete the file from the incoming bucket
+s3.delete_object(Bucket=incoming_bucket, Key=key)
+
+end = time.time()
+duration = str(round(end - start))
+print("Successfully stored equip " + equip + ", on date " + date + ", in " + duration + " s.")
