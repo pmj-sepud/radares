@@ -65,12 +65,12 @@ date_format = '%d/%m/%Y'
 try:     
     date_obj = datetime.datetime.strptime(initial_date, date_format)
 except ValueError:
-    print ('Data inicial está em formato inválido, deveria ser dia/mês/ano!', initial_date)
+    print ('Data inicial está em formato inválido, deveria ser dia/mês/ano! Data enviada:', initial_date)
     sys.exit(1)
 try:
     date_obj = datetime.datetime.strptime(final_date, date_format)
 except ValueError:
-    print ('Data final está em formato inválido,deveria ser dia/mês/ano!', final_date)
+    print ('Data final está em formato inválido,deveria ser dia/mês/ano! Data enviada:', final_date)
     sys.exit(1)
 
 
