@@ -10,6 +10,9 @@ import time
 import dotenv
 import pandas as pd
 
+from sqlalchemy import create_engine, exc, MetaData, select
+from sqlalchemy.engine.url import URL
+
 project_dir = os.path.join(os.pardir)
 sys.path.append(project_dir)
 dotenv_path = os.path.join(project_dir,'.env')
@@ -163,6 +166,21 @@ for file in all_incoming_objects:
     s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
 
     #Store in Database
+    DATABASE = {
+        'drivername': os.environ.get("RADARS_DRIVERNAME"),
+        'host': os.environ.get("RADARS_HOST"), 
+        'port': os.environ.get("RADARS_PORT"),
+        'username': os.environ.get("RADARS_USERNAME"),
+        'password': os.environ.get("RADARS_PASSWORD"),
+        'database': os.environ.get("RADARS_DATABASE"),
+        }
+
+    db_url = URL(**DATABASE)
+    engine = create_engine(db_url)
+    meta = MetaData()
+    meta.bind = engine
+    meta.reflect(schema="waze")
+
     
 
     #If we got here, the database has been populated and the clean document has been successfully stored.
