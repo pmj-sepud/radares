@@ -79,8 +79,6 @@ print("-----------------------------------")
 print("Baixando relatorios: " + equipment, " > " + initial_date, " - " +final_date, sep='\n')
 print("-----------------------------------")
 
-import pdb
-pdb.set_trace()
 
 #Get equipment list
 with open('equipamentos.json') as json_data:
