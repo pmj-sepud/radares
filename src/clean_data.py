@@ -22,30 +22,39 @@ dotenv.load_dotenv(dotenv_path)
 def create_clean_file():
     clean_file = xlwt.Workbook(encoding='utf-8')
     tab = clean_file.add_sheet('tab1')
-    tab.write(0, 0, 'Data')
-    tab.write(0, 1, 'Equipamento')
-    tab.write(0, 2, 'Sentido')
-    tab.write(0, 3, 'Horario')
-    tab.write(0, 4, '00 a 10')
-    tab.write(0, 5, '11 a 20')
-    tab.write(0, 6, '21 a 30')
-    tab.write(0, 7, '31 a 40')
-    tab.write(0, 8, '41 a 50')
-    tab.write(0, 9, '51 a 60')
-    tab.write(0, 10, '61 a 70')
-    tab.write(0, 11, '71 a 80')
-    tab.write(0, 12, '81 a 90')
-    tab.write(0, 13, '91 a 100')
-    tab.write(0, 14, 'Acima de 100')
-    tab.write(0, 15, 'Total')
+    tab.write(0, 0, 'pubdate')
+    tab.write(0, 1, 'equipment')
+    tab.write(0, 2, 'direction')
+    tab.write(0, 3, 'time_range')
+    tab.write(0, 4, 'speed_00_10')
+    tab.write(0, 5, 'speed_11_20')
+    tab.write(0, 6, 'speed_21_30')
+    tab.write(0, 7, 'speed_31_40')
+    tab.write(0, 8, 'speed_41_50')
+    tab.write(0, 9, 'speed_51_60')
+    tab.write(0, 10, 'speed_61_70')
+    tab.write(0, 11, 'speed_71_80')
+    tab.write(0, 12, 'speed_81_90')
+    tab.write(0, 13, 'speed_91_100')
+    tab.write(0, 14, 'speed_100_up')
+    tab.write(0, 15, 'total')
 
     return clean_file
+
+def clean_direction(df):
+    df.direction = df.direction.str.split(pat="/", n=1).str.get(1)
+    df.direction = df.direction.replace({"^N$": "Norte",
+                                         "^S$": "Sul",
+                                         "^L$": "Leste",
+                                         "^O$": "Oeste"}, regex=True)
+    return df   
+
 
 s3 = boto3.client('s3')
 #bucket="production-monitran-data-incoming"
 bucket="test-monitran-incoming"
 
-#Iterate over all s3 incoming objects
+print("Iterate over all s3 incoming objects")
 all_incoming_objects = []
 paginator = s3.get_paginator('list_objects')
 page_iterator = paginator.paginate(Bucket=bucket)
@@ -55,7 +64,7 @@ for page in page_iterator:
 #Create cleaned workbook
 for file in all_incoming_objects:
     start = time.time()
-
+    print("Begin processing file:", file)
     #Read raw file
     equip, date = file.split("/")
     title_date = date.split(".")[0]
@@ -157,7 +166,10 @@ for file in all_incoming_objects:
     stream = BytesIO()
     clean_file.save(stream)
     stream.seek(0)
-    df = pd.read_excel(stream)
+    df = (pd.read_excel(stream)
+          .assign(pubdate = lambda df: pd.to_datetime(df.pubdate))
+          .pipe(clean_direction)
+         )
 
     #Save to s3 object
     csv_buffer = StringIO()
@@ -179,9 +191,8 @@ for file in all_incoming_objects:
     engine = create_engine(db_url)
     meta = MetaData()
     meta.bind = engine
-    meta.reflect(schema="waze")
-
-    
+    meta.reflect(schema="radars")
+    df.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
 
     #If we got here, the database has been populated and the clean document has been successfully stored.
     #Only now should we proceed and delete the file from the incoming bucket

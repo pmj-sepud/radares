@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS radars.flows
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "equip_date"
-ON radars.flows USING btree (pubdate, equipment, direction);
+ON radars.flows USING btree (pubdate, equipment, direction, time_range);
 
 CREATE TABLE IF NOT EXISTS radars.equipments
 (
