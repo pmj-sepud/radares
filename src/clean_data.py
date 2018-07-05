@@ -162,6 +162,9 @@ for file in all_incoming_objects:
     write_key = equip + "/" + file_date + '.csv'
     s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
 
+    #Store in Database
+    
+
     #If we got here, the database has been populated and the clean document has been successfully stored.
     #Only now should we proceed and delete the file from the incoming bucket
 
