@@ -29,8 +29,6 @@ CREATE TABLE IF NOT EXISTS radars.flows
 "total"                             INTEGER
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS "equip_date"
-ON radars.flows USING btree (pubdate, equipment, direction, time_range);
 
 CREATE TABLE IF NOT EXISTS radars.equipments
 (
@@ -44,4 +42,15 @@ CREATE TABLE IF NOT EXISTS radars.equipments
 "bus_lane"                          BOOLEAN,
 "parking_lane"                      BOOLEAN,
 "number_lanes"                      INTEGER
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS radars.equipment_files
+(
+"id"                                SERIAL PRIMARY KEY NOT NULL,
+"file_name"                         VARCHAR(20),
+"pubdate"                           DATE,
+"equipment"                         VARCHAR(20)
 );
