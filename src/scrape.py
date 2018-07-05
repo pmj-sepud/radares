@@ -70,25 +70,33 @@ data['S3RAWOBJECT']['equipment'] = []
 log_file_name = project_dir+'/log/log_monitran_'+year+'_'+month+'_'+day+'.json'
 with open(log_file_name, 'w') as outfile:  
 
-  #MODIFICAR LOGICA POIS O TIMEOUT CONSOME MUITO TEMPO
-  for equip in equip_list:      
-      params = {"equipamento": equip,
+  # DOWNLOAD DO RELATORIO PARA TODOS OS EQUIPAMENTOS DISPONIVEIS NA LISTA equipamentos.json
+  for equip in equip_list:
+      try:
+        params = {"equipamento": equip,
                 "dataStr": querystring_date,
                 "horaInicio": start_time,
                 "horaFim": end_time,
                 "opcao": 'excel',
                 "exibir": "on"
                 }
-      req = requests.Request("GET", url, params=params)
-      response = session.get(url, params=params, stream=True)
-      # import pdb
-      # pdb.set_trace()
-      key = equip + "/" + year + "-" + month.zfill(2) + "-" + day.zfill(2) + '.xlsx'
-      s3.put_object(Body=response.content, Bucket=raw_bucket, Key=key)
-      data_execucao = datetime.datetime.now()
-      data['S3RAWOBJECT']['equipment'].append({
-          'name': equip,
-          'dateTime': str(data_execucao)          
-          })
-      print(data)
+        req = requests.Request("GET", url, params=params)
+        response = session.get(url, params=params, stream=True)
+        # import pdb
+        # pdb.set_trace()
+        key = equip + "/" + year + "-" + month.zfill(2) + "-" + day.zfill(2) + '.xlsx'
+        s3.put_object(Body=response.content, Bucket=raw_bucket, Key=key)
+        data_execucao = datetime.datetime.now()
+        data['S3RAWOBJECT']['equipment'].append({
+            'name': equip,
+            'dateTime': str(data_execucao),
+            'status': 'downloaded'
+            })        
+      except Exception as e:
+        data['S3RAWOBJECT']['equipment'].append({
+            'name': equip,
+            'dateTime': str(data_execucao),
+            'status': 'fail',
+            'error': e
+            })        
   json.dump(data, outfile)
