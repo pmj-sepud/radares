@@ -5,7 +5,7 @@ import xlrd
 import json
 import boto3
 import xlwt
-from io import BytesIO
+from io import BytesIO, StringIO
 import time
 import dotenv
 import pandas as pd
@@ -16,36 +16,47 @@ dotenv_path = os.path.join(project_dir,'.env')
 dotenv.load_dotenv(dotenv_path)
 
 
-def create_empty_file():
+def create_clean_file():
     clean_file = xlwt.Workbook(encoding='utf-8')
     tab = clean_file.add_sheet('tab1')
-    tab.write(0, 0, 'Endereco')
-    tab.write(0, 1, 'Corredor')
-    tab.write(0, 2, 'Ciclofaixa')
-    tab.write(0, 3, 'Numero de faixas')
-    tab.write(0, 4, 'Latitude')
-    tab.write(0, 5, 'Longitude')
-    tab.write(0, 6, 'Sentido')
-    tab.write(0, 7, 'Data')
-    tab.write(0, 8, 'Equipamento')
-    tab.write(0, 9, 'Horario')
-    tab.write(0, 10, '00 a 10')
-    tab.write(0, 11, '11 a 20')
-    tab.write(0, 12, '21 a 30')
-    tab.write(0, 13, '31 a 40')
-    tab.write(0, 14, '41 a 50')
-    tab.write(0, 15, '51 a 60')
-    tab.write(0, 16, '61 a 70')
-    tab.write(0, 17, '71 a 80')
-    tab.write(0, 18, '81 a 90')
-    tab.write(0, 19, '91 a 100')
-    tab.write(0, 20, 'Acima de 100')
-    tab.write(0, 21, 'Total')
+    tab.write(0, 0, 'Data')
+    tab.write(0, 1, 'Equipamento')
+    tab.write(0, 2, 'Sentido')
+    tab.write(0, 3, 'Horario')
+    tab.write(0, 4, '00 a 10')
+    tab.write(0, 5, '11 a 20')
+    tab.write(0, 6, '21 a 30')
+    tab.write(0, 7, '31 a 40')
+    tab.write(0, 8, '41 a 50')
+    tab.write(0, 9, '51 a 60')
+    tab.write(0, 10, '61 a 70')
+    tab.write(0, 11, '71 a 80')
+    tab.write(0, 12, '81 a 90')
+    tab.write(0, 13, '91 a 100')
+    tab.write(0, 14, 'Acima de 100')
+    tab.write(0, 15, 'Total')
 
     return clean_file
 
-def clean_file(bucket, key, s3_client):
-    #Read incoming file
+s3 = boto3.client('s3')
+#bucket="production-monitran-data-incoming"
+bucket="test-monitran-incoming"
+
+#Iterate over all s3 incoming objects
+all_incoming_objects = []
+paginator = s3.get_paginator('list_objects')
+page_iterator = paginator.paginate(Bucket=bucket)
+for page in page_iterator:
+    all_incoming_objects += [c["Key"] for c in page["Contents"] if "xlsx" in c["Key"]]
+
+#Create cleaned workbook
+for file in all_incoming_objects:
+    start = time.time()
+
+    #Read raw file
+    equip, date = file.split("/")
+    title_date = date.split(".")[0]
+    key = file
     obj = s3.get_object(Bucket=bucket, Key=key)
     wb = xlrd.open_workbook(file_contents=obj['Body'].read())
     sheet = wb.sheets()[0]
@@ -53,8 +64,9 @@ def clean_file(bucket, key, s3_client):
 
     #check date
     date_parts = sheet.cell(2,1).value.split("\n")[0].split(" ")[1].replace("/", "-").split("-")
-    date = date_parts[2] + "-" + date_parts[1] + "-" + date_parts[0] #%Y-%m-%d
-    if date != file.split("/")[1].split(".")[0]:
+    file_date = date_parts[2] + "-" + date_parts[1].zfill(2) + "-" + date_parts[0].zfill(2) #%Y-%m-%d
+
+    if file_date != title_date:
         raise Exception("Data dentro do arquivo não bate com data no nome do arquivo ")
 
     #check equip
@@ -63,7 +75,7 @@ def clean_file(bucket, key, s3_client):
         raise Exception("Equipamento dentro do arquivo não bate com equipamento no nome do arquivo ")
 
     #Create clean file
-    clean_file = create_empty_file()
+    clean_file = create_clean_file()
     tab = clean_file.get_sheet("tab1")
 
     #Define template type
@@ -74,7 +86,7 @@ def clean_file(bucket, key, s3_client):
     elif (sheet.nrows==205) and (sheet.cell(201,1).value.strip() == "Total Geral"):
         template = 3
     else:
-        print("Nenhum template foi identificado para ", equip, date)
+        print("No template was found for ", equip, file_date)
         continue
 
     if template == 1:
@@ -83,6 +95,7 @@ def clean_file(bucket, key, s3_client):
         direction = sheet.cell(5,15).value       
         blocks_list = [(0, block1_begin, direction)]
 
+    #Template 2 para relatórios que possuem dois sentidos
     if template == 2:
         len_data_block = 96
         block1_begin = 8
@@ -120,54 +133,38 @@ def clean_file(bucket, key, s3_client):
             #Write data to excel file
             write_row = a + i + 1
 
-            tab.write(write_row, 9, time_slot)
-            tab.write(write_row, 10, flow00)
-            tab.write(write_row, 11, flow11)
-            tab.write(write_row, 12, flow21)
-            tab.write(write_row, 13, flow31)
-            tab.write(write_row, 14, flow41)
-            tab.write(write_row, 15, flow51)
-            tab.write(write_row, 16, flow61)
-            tab.write(write_row, 17, flow71)
-            tab.write(write_row, 18, flow81)
-            tab.write(write_row, 19, flow91)
-            tab.write(write_row, 20, flow100)
-            tab.write(write_row, 21, flowTotal)
-            tab.write(write_row, 0, equip_dict[equip]['endereco'])
-            tab.write(write_row, 1, equip_dict[equip]['corredor'])
-            tab.write(write_row, 2, equip_dict[equip]['ciclofaixa'])
-            tab.write(write_row, 3, equip_dict[equip]['n_faixa_carro_sentido'])
-            tab.write(write_row, 4, equip_dict[equip]['latitude'])
-            tab.write(write_row, 5, equip_dict[equip]['longitude'])           
-            tab.write(write_row, 6, direction)
-            tab.write(write_row, 7, date)
-            tab.write(write_row, 8, equip)
+            tab.write(write_row, 0, file_date)
+            tab.write(write_row, 1, equip)
+            tab.write(write_row, 2, direction)
+            tab.write(write_row, 3, time_slot)
+            tab.write(write_row, 4, flow00)
+            tab.write(write_row, 5, flow11)
+            tab.write(write_row, 6, flow21)
+            tab.write(write_row, 7, flow31)
+            tab.write(write_row, 8, flow41)
+            tab.write(write_row, 9, flow51)
+            tab.write(write_row, 10, flow61)
+            tab.write(write_row, 11, flow71)
+            tab.write(write_row, 12, flow81)
+            tab.write(write_row, 13, flow91)
+            tab.write(write_row, 14, flow100)
+            tab.write(write_row, 15, flowTotal)          
 
-            return clean_file
+    #Create pandas DataFrame
+    stream = BytesIO()
+    clean_file.save(stream)
+    stream.seek(0)
+    df = pd.read_excel(stream)
 
-#Connect to S3 and check existing reports
-s3 = boto3.client('s3')
-processed_bucket="production-monitran-data-processed"
-clean_file = clean_file()
+    #Save to s3 object
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False)
+    write_key = equip + "/" + file_date + '.csv'
+    s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
 
-#Save to s3 object
-stream = BytesIO()
-clean_file.save(stream)
-stream.seek(0)
-write_key = equip + "/" + date + '.xlsx'
-s3.put_object(Body=stream.read(), Bucket=processed_bucket, Key=write_key)
+    #If we got here, the database has been populated and the clean document has been successfully stored.
+    #Only now should we proceed and delete the file from the incoming bucket
 
-#Insert data into the database
-obj = s3.get_object(Bucket=processed_bucket, Key=write_key)
-df = pd.read_excel(obj['Body'].read())
-import pdb
-pdb.set_trace()
-
-
-#If we got here, the database has been populated and the clean document has been successfully stored.
-#Only now should we proceed and delete the file from the incoming bucket
-s3.delete_object(Bucket=incoming_bucket, Key=key)
-
-end = time.time()
-duration = str(round(end - start))
-print("Successfully stored equip " + equip + ", on date " + date + ", in " + duration + " s.")
+    end = time.time()
+    duration = str(round(end - start))
+    print("Successfully stored equip " + equip + ", on date " + file_date + ", in " + duration + " s.")
