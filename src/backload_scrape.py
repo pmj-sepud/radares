@@ -7,12 +7,15 @@ import dotenv
 import sys
 import argparse
 import datetime
+from sqlalchemy import create_engine, exc, MetaData, select
+from sqlalchemy.engine.url import URL
 
 
 project_dir = os.path.join(os.pardir)
 sys.path.append(project_dir)
 dotenv_path = os.path.join(project_dir,'.env')
 dotenv.load_dotenv(dotenv_path)
+
 
 #GLOBALS
 yesterday = datetime.date.today() - datetime.timedelta(1)
@@ -37,7 +40,7 @@ def get_args():
         description='Script para backload de equipamentos por periodo!')
     # Define the first argument
     parser.add_argument(
-        '-equip', '--equipamento', type=str, help='Nome do Equipamento', required=False)
+        '-equip', '--equipamento', type=str, help='Nome dos Equipamentos (SEPARADO POR VIRGULA)', required=False)
     # Define the second argument
     parser.add_argument(
         '-dt_ini', '--initial_date', type=str, help='Data Inicial (DD/MM/YYYY)', required=False)
@@ -73,6 +76,39 @@ except ValueError:
     print ('Data final está em formato inválido,deveria ser dia/mês/ano! Data enviada:', final_date)
     sys.exit(1)
 
+try:
+    #Get equipment list on table equipments. Count number of equipments to fetch
+    
+    DATABASE = {
+        'drivername': os.environ.get("RADARS_DRIVERNAME"),
+        'host': os.environ.get("RADARS_HOST"), 
+        'port': os.environ.get("RADARS_PORT"),
+        'username': os.environ.get("RADARS_USERNAME"),
+        'password': os.environ.get("RADARS_PASSWORD"),
+        'database': os.environ.get("RADARS_DATABASE"),
+        }
+
+
+    #DATABASE CONNECTION ON SCHEMA radars 
+    db_url = URL(**DATABASE)
+    engine = create_engine(db_url)
+    meta = MetaData()
+    meta.bind = engine
+    meta.reflect(schema="radars")
+
+    tbl_equipment = meta.tables['equipments']
+    equipments_query = tbl_equipment.select().where(equipments.c.equipment in (equipment))
+    df_equipments = pd.read_sql(jams_query, con=meta.bind)
+    
+    equip_list = list(equip_set)
+    equip_list.sort()
+
+    equipment_not_found = "fail return"
+except Exception as e:
+    except ValueError:
+    print ('Equipamento não encontrado:', equipment_not_found)
+    sys.exit(1)
+
 
 # Print confirmation on terminal
 print("-----------------------------------")
@@ -80,14 +116,7 @@ print("Baixando relatorios: " + equipment, " > " + initial_date, " - " +final_da
 print("-----------------------------------")
 
 
-#Get equipment list
-with open('equipamentos.json') as json_data:
-    equipamentos = json.load(json_data)
-equip_set = set([equipamento["equipamento"] for equipamento in equipamentos])
-equip_list = list(equip_set)
-equip_list.sort()
-
-#Scope for download of reports
+#Scope for download of reports. 
 start_day=1
 start_month=9
 start_year=2017
