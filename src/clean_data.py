@@ -7,6 +7,7 @@ import boto3
 import xlwt
 from io import BytesIO, StringIO
 import time
+import datetime
 import dotenv
 import pandas as pd
 
@@ -17,6 +18,7 @@ project_dir = os.path.join(os.pardir)
 sys.path.append(project_dir)
 dotenv_path = os.path.join(project_dir,'.env')
 dotenv.load_dotenv(dotenv_path)
+
 
 
 def create_clean_file():
@@ -175,9 +177,13 @@ for file in all_incoming_objects:
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False)
     write_key = equip + "/" + file_date + '.csv'
-    s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
+    response = s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
+    
+    date_created_value = response.get('ResponseMetadata').get('HTTPHeaders').get('date')
+    date_created_timestamp = time.mktime(datetime.datetime.strptime(date_created_value, '%a, %d %b %Y %H:%M:%S GMT').timetuple())
 
-    #Store in Database
+
+    #Store in Database - ??? Is necessery perist DB everytime to record tables? We can put this piece of code above, before the loop
     DATABASE = {
         'drivername': os.environ.get("RADARS_DRIVERNAME"),
         'host': os.environ.get("RADARS_HOST"), 
@@ -187,16 +193,54 @@ for file in all_incoming_objects:
         'database': os.environ.get("RADARS_DATABASE"),
         }
 
+
+    #DATABASE CONNECTION ON SCHEMA radars
     db_url = URL(**DATABASE)
     engine = create_engine(db_url)
     meta = MetaData()
     meta.bind = engine
     meta.reflect(schema="radars")
-    df.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
 
-    #If we got here, the database has been populated and the clean document has been successfully stored.
-    #Only now should we proceed and delete the file from the incoming bucket
 
+
+    #FIRST STEP: INSERT a new file on table equipment_files
+    d_equipment = {'file_name': write_key ,'pubdate': file_date,'equipment': equip,'date_created': date_created_value}
+    df_equipment = pd.DataFrame(data=d_equipment,index=[0])
+
+    print('insert data in equipment_files table')
+    df_equipment.to_sql("equipment_files", schema="radars", con=meta.bind, if_exists="append", index=False)
+
+    
+    #SECOND STEP: GET ID of equipment_files BY read_sql with 3 main keys: file_name,pubdate,equipment and date_created in aws
+    query_df_equipment = '''
+        SELECT id FROM radars.equipment_files
+            WHERE file_name = %(file_name)s
+            AND pubdate = %(pubdate)s
+            AND equipment = %(equipment)s
+            AND date_created = %(date_created)s
+    '''    
+    
+    #THIRD STEP: PUT the new equipment_files_id in a new column and INSERT the flows of it
+    df_equipment_slct = pd.read_sql(query_df_equipment,meta.bind,params=d_equipment,index_col=['id'])
+    df_equipment_idx = df_equipment_slct.index.values[0]
+    df_flows_equipment = df.assign(equipment_files_id=df_equipment_idx)
+
+    # REMOVED COLUMNS pubdate, equipment, direction, 
+    df_flows_equipment = df_flows_equipment.drop(['pubdate', 'equipment'], axis=1)
+
+    
+    print('insert data in flows table')
+    df_flows_equipment.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
+
+    ''' 
+    If we got here, the database has been populated and the clean document has been successfully stored.
+    Only now should we proceed and delete the file from the incoming bucket, whether got some problems, the incoming will be 
+    cleanning next time
+    ''' 
+    print('deleting object from AWS S3 incoming')
+    del_response = s3.delete_object(Bucket=bucket, Key=key)
+
+    
     end = time.time()
     duration = str(round(end - start))
     print("Successfully stored equip " + equip + ", on date " + file_date + ", in " + duration + " s.")
