@@ -15,12 +15,11 @@ CREATE TABLE IF NOT EXISTS radars.equipments
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "equipment"                         VARCHAR(20),
 "pubdate"                           DATE,
-"direction"                         direction,
 "latitude"                          float4,
 "longitude"                         float4,
-"bike_lane"                         BOOLEAN,
-"bus_lane"                          BOOLEAN,
-"parking_lane"                      BOOLEAN,
+"bike_lane"                         BOOLEAN DEFAULT FALSE,
+"bus_lane"                          BOOLEAN DEFAULT FALSE,
+"parking_lane"                      BOOLEAN DEFAULT FALSE,
 "number_lanes"                      INTEGER
 );
 
