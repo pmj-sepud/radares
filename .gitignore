@@ -2,5 +2,6 @@
 data
 data/*
 log/*
+!log/.gitkeep
 src/ANOTACOES
 src/NOTES
