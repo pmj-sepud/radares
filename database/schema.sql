@@ -1,6 +1,15 @@
-CREATE SCHEMA IF NOT EXISTS radars1;
+CREATE SCHEMA IF NOT EXISTS radars;
 
--- setup permissions for users
+-- create the lambda role
+CREATE ROLE sepud_admin LOGIN PASSWORD '5m2018_53pud3nv1r0nm3n7';
+
+-- setup permissions for the lambda role
+GRANT ALL ON SCHEMA radars TO sepud_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA radars GRANT ALL ON TABLES TO sepud_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA radars GRANT SELECT, USAGE ON SEQUENCES TO sepud_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA radars GRANT EXECUTE ON FUNCTIONS TO sepud_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA radars GRANT USAGE ON TYPES TO sepud_admin;
+
 
 DO $$
 BEGIN
@@ -10,7 +19,7 @@ BEGIN
 END
 $$;
 
-CREATE TABLE IF NOT EXISTS radars1.equipment_files
+CREATE TABLE IF NOT EXISTS radars.equipment_files
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "file_name"                         VARCHAR(100),
@@ -20,11 +29,11 @@ CREATE TABLE IF NOT EXISTS radars1.equipment_files
 );
 
 CREATE UNIQUE INDEX "IDX_UNIQUE_pubdate_equipment"
-ON radars1.equipment_files USING btree
+ON radars.equipment_files USING btree
 (pubdate, equipment);
 
 
-CREATE TABLE IF NOT EXISTS radars1.equipments
+CREATE TABLE IF NOT EXISTS radars.equipments
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "equipment"                         VARCHAR(20),
@@ -40,10 +49,10 @@ CREATE TABLE IF NOT EXISTS radars1.equipments
 );
 
 
-CREATE TABLE IF NOT EXISTS radars1.flows
+CREATE TABLE IF NOT EXISTS radars.flows
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
-"equipment_files_id"                BIGINT NOT NULL REFERENCES radars1.equipment_files (id),
+"equipment_files_id"                BIGINT NOT NULL REFERENCES radars.equipment_files (id),
 "direction"                         direction,
 "time_range"                        VARCHAR(20),
 "speed_00_10"                       INTEGER, /*through analysis we inferred that the date was timezone aware*/

@@ -21,6 +21,8 @@ dotenv.load_dotenv(dotenv_path)
 
 
 
+
+
 def create_clean_file():
     clean_file = xlwt.Workbook(encoding='utf-8')
     tab = clean_file.add_sheet('tab1')
@@ -53,13 +55,14 @@ def clean_direction(df):
 
 
 s3 = boto3.client('s3')
-#bucket="production-monitran-data-incoming"
-bucket="test-monitran-incoming"
+raw_bucket="test-monitran-incoming"
+# raw_bucket = os.environ.get("S3BUCKET_RAW")
+processed_bucket = os.environ.get("S3BUCKET_PROC")
 
 print("Iterate over all s3 incoming objects")
 all_incoming_objects = []
 paginator = s3.get_paginator('list_objects')
-page_iterator = paginator.paginate(Bucket=bucket)
+page_iterator = paginator.paginate(Bucket=raw_bucket)
 for page in page_iterator:
     all_incoming_objects += [c["Key"] for c in page["Contents"] if "xlsx" in c["Key"]]
 
@@ -87,7 +90,7 @@ for file in all_incoming_objects:
     equip, date = file.split("/")
     title_date = date.split(".")[0]
     key = file
-    obj = s3.get_object(Bucket=bucket, Key=key)
+    obj = s3.get_object(Bucket=raw_bucket, Key=key)
     wb = xlrd.open_workbook(file_contents=obj['Body'].read())
     sheet = wb.sheets()[0]
     len_data_block = 96
@@ -193,7 +196,7 @@ for file in all_incoming_objects:
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False)
     write_key = equip + "/" + file_date + '.csv'
-    response = s3.put_object(Body=csv_buffer.getvalue(), Bucket='production-monitran-data-processed', Key=write_key)
+    response = s3.put_object(Body=csv_buffer.getvalue(), Bucket=processed_bucket, Key=write_key)
     
     date_created_value = response.get('ResponseMetadata').get('HTTPHeaders').get('date')
     date_created_timestamp = time.mktime(datetime.datetime.strptime(date_created_value, '%a, %d %b %Y %H:%M:%S GMT').timetuple())
@@ -243,7 +246,7 @@ for file in all_incoming_objects:
     cleanning next time
     ''' 
     print('deleting object from AWS S3 incoming')
-    del_response = s3.delete_object(Bucket=bucket, Key=key)
+    del_response = s3.delete_object(Bucket=raw_bucket, Key=key)
 
     
     end = time.time()
