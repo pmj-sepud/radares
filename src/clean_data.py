@@ -198,9 +198,19 @@ for file in all_incoming_objects:
     date_created_value = response.get('ResponseMetadata').get('HTTPHeaders').get('date')
     date_created_timestamp = time.mktime(datetime.datetime.strptime(date_created_value, '%a, %d %b %Y %H:%M:%S GMT').timetuple())
 
-    #FIRST STEP: INSERT a new file on table equipment_files
+    #FIRST STEP: VERIFY if info doesn't exist and INSERT a new file on table equipment_files       
     d_equipment = {'file_name': write_key ,'pubdate': file_date,'equipment': equip,'date_created': date_created_value}
     df_equipment = pd.DataFrame(data=d_equipment,index=[0])
+
+    query_df_equipment_fnd = '''
+        SELECT id FROM radars.equipment_files
+            WHERE file_name = %(file_name)s
+            AND pubdate = %(pubdate)s
+            AND equipment = %(equipment)s            
+    '''  
+    
+    df_equipment_fnd_slct = pd.read_sql(query_df_equipment_fnd,meta.bind,params=d_equipment,index_col=['id'])        
+    if not df_equipment_fnd_slct.index.empty: raise Exception("Equipamento já existe no banco de dados!")
 
     print('insert data in equipment_files table')
     df_equipment.to_sql("equipment_files", schema="radars", con=meta.bind, if_exists="append", index=False)

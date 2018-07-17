@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS radars.equipments
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "equipment"                         VARCHAR(20),
-"pubdate"                           DATE,
+"date_updated"                      DATE,
 "latitude"                          float4,
 "longitude"                         float4,
 "direction"                         direction,
