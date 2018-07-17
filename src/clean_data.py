@@ -63,6 +63,22 @@ page_iterator = paginator.paginate(Bucket=bucket)
 for page in page_iterator:
     all_incoming_objects += [c["Key"] for c in page["Contents"] if "xlsx" in c["Key"]]
 
+#Database connection
+DATABASE = {
+    'drivername': os.environ.get("RADARS_DRIVERNAME"),
+    'host': os.environ.get("RADARS_HOST"), 
+    'port': os.environ.get("RADARS_PORT"),
+    'username': os.environ.get("RADARS_USERNAME"),
+    'password': os.environ.get("RADARS_PASSWORD"),
+    'database': os.environ.get("RADARS_DATABASE"),
+    }
+
+db_url = URL(**DATABASE)
+engine = create_engine(db_url)
+meta = MetaData()
+meta.bind = engine
+meta.reflect(schema="radars")
+
 #Create cleaned workbook
 for file in all_incoming_objects:
     start = time.time()
@@ -181,27 +197,6 @@ for file in all_incoming_objects:
     
     date_created_value = response.get('ResponseMetadata').get('HTTPHeaders').get('date')
     date_created_timestamp = time.mktime(datetime.datetime.strptime(date_created_value, '%a, %d %b %Y %H:%M:%S GMT').timetuple())
-
-
-    #Store in Database - ??? Is necessery perist DB everytime to record tables? We can put this piece of code above, before the loop
-    DATABASE = {
-        'drivername': os.environ.get("RADARS_DRIVERNAME"),
-        'host': os.environ.get("RADARS_HOST"), 
-        'port': os.environ.get("RADARS_PORT"),
-        'username': os.environ.get("RADARS_USERNAME"),
-        'password': os.environ.get("RADARS_PASSWORD"),
-        'database': os.environ.get("RADARS_DATABASE"),
-        }
-
-
-    #DATABASE CONNECTION ON SCHEMA radars
-    db_url = URL(**DATABASE)
-    engine = create_engine(db_url)
-    meta = MetaData()
-    meta.bind = engine
-    meta.reflect(schema="radars")
-
-
 
     #FIRST STEP: INSERT a new file on table equipment_files
     d_equipment = {'file_name': write_key ,'pubdate': file_date,'equipment': equip,'date_created': date_created_value}
