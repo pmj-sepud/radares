@@ -68,7 +68,7 @@ data['S3RAWOBJECT']['equipment'] = []
 log_file_name = project_dir+'/log/log_monitran_'+year+'_'+month+'_'+day+'.json'
 with open(log_file_name, 'w') as outfile:  
 
-  # DOWNLOAD DO RELATORIO PARA TODOS OS EQUIPAMENTOS DISPONIVEIS NA LISTA equipamentos.json
+  # DOWNLOAD DO RELATORIO PARA TODOS OS EQUIPAMENTOS DISPONIVEIS NA LISTA equipamentos.csv
   for equip in equip_list:
       try:
         params = {"equipamento": equip,
