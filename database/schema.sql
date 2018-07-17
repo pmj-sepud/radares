@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS radars.equipments
 "pubdate"                           DATE,
 "latitude"                          float4,
 "longitude"                         float4,
+"direction"                         direction,
 "bike_lane"                         BOOLEAN DEFAULT FALSE,
 "bus_lane"                          BOOLEAN DEFAULT FALSE,
 "parking_lane"                      BOOLEAN DEFAULT FALSE,
