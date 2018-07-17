@@ -21,7 +21,7 @@ username = os.environ.get("USER_NAME")
 password = os.environ.get("PASSWORD")
 auth_url = os.environ.get("URL")
 raw_bucket = os.environ.get("S3BUCKET_RAW")
-equipment = os.environ.get("EQUIPAMENTOS")
+equipment = project_dir + os.environ.get("EQUIPAMENTOS")
 url = os.environ.get("URL_ENDPOINT")
 
 
@@ -49,7 +49,7 @@ auth = session.post(auth_url, data={'login': username, 'senha': password})
 
 #Get equipment list
 df_equipment_csv = pd.read_csv(equipment, usecols=['equipment'])
-equip_list = df_equipment_csv.drop_duplicates(subset=['equipment'])
+equip_list = df_equipment_csv.drop_duplicates(subset=['equipment']).equipment.tolist()
 
 #Scope for download of reports  
 day = str(yesterday.day) #int(os.environ.get("START_DAY"))
