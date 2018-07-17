@@ -1,4 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS radars;
+CREATE SCHEMA IF NOT EXISTS radars1;
+
+-- setup permissions for users
 
 DO $$
 BEGIN
@@ -8,9 +10,21 @@ BEGIN
 END
 $$;
 
+CREATE TABLE IF NOT EXISTS radars1.equipment_files
+(
+"id"                                SERIAL PRIMARY KEY NOT NULL,
+"file_name"                         VARCHAR(100),
+"pubdate"                           DATE,
+"equipment"                         VARCHAR(20),
+"date_created"                      TIMESTAMP
+);
+
+CREATE UNIQUE INDEX "IDX_UNIQUE_pubdate_equipment"
+ON radars1.equipment_files USING btree
+(pubdate, equipment);
 
 
-CREATE TABLE IF NOT EXISTS radars.equipments
+CREATE TABLE IF NOT EXISTS radars1.equipments
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "equipment"                         VARCHAR(20),
@@ -25,22 +39,10 @@ CREATE TABLE IF NOT EXISTS radars.equipments
 );
 
 
-
-
-CREATE TABLE IF NOT EXISTS radars.equipment_files
+CREATE TABLE IF NOT EXISTS radars1.flows
 (
 "id"                                SERIAL PRIMARY KEY NOT NULL,
-"file_name"                         VARCHAR(100),
-"pubdate"                           DATE,
-"equipment"                         VARCHAR(20),
-"date_created"                      TIMESTAMP
-);
-
-
-CREATE TABLE IF NOT EXISTS radars.flows
-(
-"id"                                SERIAL PRIMARY KEY NOT NULL,
-"equipment_files_id"                BIGINT NOT NULL REFERENCES radars.equipment_files (id),
+"equipment_files_id"                BIGINT NOT NULL REFERENCES radars1.equipment_files (id),
 "direction"                         direction,
 "time_range"                        VARCHAR(20),
 "speed_00_10"                       INTEGER, /*through analysis we inferred that the date was timezone aware*/
