@@ -5,6 +5,7 @@ import boto3
 import os
 import dotenv
 import sys
+import pandas as pd
 
 
 
@@ -47,11 +48,8 @@ auth_url = 'http://monitran.com.br/joinville/login'
 auth = session.post(auth_url, data={'login': username, 'senha': password})
 
 #Get equipment list
-with open(equipment) as json_data:
-    equipamentos = json.load(json_data)
-equip_set = set([equipamento["equipamento"] for equipamento in equipamentos])
-equip_list = list(equip_set)
-equip_list.sort()
+df_equipment_csv = pd.read_csv(equipment, usecols=['equipment'])
+equip_list = df_equipment_csv.drop_duplicates(subset=['equipment'])
 
 #Scope for download of reports  
 day = str(yesterday.day) #int(os.environ.get("START_DAY"))

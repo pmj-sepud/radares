@@ -52,7 +52,7 @@ def get_args():
         arg2 = args.initial_date
         arg3 = args.final_date
     else:
-        arg1 = input("Nome do Equipamento: ")
+        arg1 = input("Nome do(s) Equipamento(s) (SEPARADO POR VIRGULA) : ")
         arg2 = input("Data Inicial (DD/MM/YYYY): ")
         arg3 = input("Data Final (DD/MM/YYYY): ")
     # Return the file name variables

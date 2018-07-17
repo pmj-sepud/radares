@@ -1,0 +1,101 @@
+equipment,latitude,longitude,address,bus_lane,bike_lane,parking_lane,number_lanes,Radar nos 2 sentidos da via,endereço alterado,revisados
+FS551JOI,-26.26574,-48.80091,"Rua Areia Branca, 681 ",0,0,0,1,x,x,ok
+FS552JOI,-26.22783,-48.90053,"Rua Dona Francisca, 11657",0,0,0,1,-,-,ok
+FS555JOI,-26.2836,-48.80301,"Rua Pref. Baltazar Buschle, 630",0,1,0,1,x,-,ok
+FS556JOI,-26.30404,-48.86261,"Rua Camboriú, 300",0,1,0,1,x,-,ok
+FS557JOI,-26.36076,-48.83406,"Rua Boehmerwald, 497",0,1,0,1,x,x,ok
+FS558JOI,-26.31945,-48.83094,"Rua Graciosa, 1000",0,1,0,2,-,-,ok
+FS559JOI,-26.31602,-48.83758,"Rua Inácio Bastos, 770",0,1,1,2,-,-,ok
+FS560JOI,-26.27482,-48824,"Rua Papa João XXIII, 500",0,1,0,2,-,-,ok
+FS561JOI,-26.25815,-48.82012,"Rua Tuiuti, 1500",0,1,0,1,x,-,ok
+FS562JOI,-26.2741,-48.84875,"Rua Dona Francisca, 3651",0,1,0,2,-,-,ok
+FS563JOI,-26.33583,-48.84758,"Rua Santa Catarina, 1450",1,0,0,2,-,-,ok
+FS564JOI,-26.31668,-48.85893,"Rua Gothard Kaesemodel, 326",0,1,0,1,x,-,ok
+FS565JOI,-26.38367,-48.82202,"Rua Waldomiro José Borges, 4104",0,0,0,1,x,x,ok
+FS566JOI,-26.28226,-48.81352,"Rua Xavier Arp, 250",0,0,0,2,-,-,ok
+FS567JOI,"-26,29493","-48,84791",Dr. João Colin x Max Colin,1,0,0,2,-,-,ok
+FS568JOI,-26.31651,-48.8426,Rua São Paulo x Rua Inácio Bastos,1,0,0,2,-,-,ok
+FS569JOI,-26.2998,-48.8424,Av.Dr. Albano Schultz x Rua Princesa Izabel,1,0,0,2,-,-,ok
+FS570JOI,-26.30008,-48.84182,Av. Hermann August Lepper x Rua Otto E. Lepper,0,0,0,3,-,-,ok
+FS571JOI,"-26,27452","-48,85105",Rua Blumenau x Presidente Prudente de Moraes,0,0,0,3,-,-,ok
+FS572JOI,-26.32416,-48.83737,Rua Florianópolis x Rua Graciosa,0,0,0,2,-,-,ok
+FS573JOI,-26.31777,-48.85774,"Rua Gothard Kaesemodel, 533",0,1,0,1,-,-,ok
+FS575JOI,-26.27682,-48.87508,Rua Comandante Paulo Serra 580,-,-,-,-,-,x,ok
+FS576JOI,-26.32551,-48.80962,"Rua Marechal Luz, 831",0,0,0,2,-,x,ok
+FS577JOI,-26.27658,-48.80753,"Rua Ponte Serrada, 440",0,1,0,1,x,-,ok
+FS578JOI,-26.30468,-48.82496,"Rua Albano Schmidt, 1091",0,1,0,2,-,-,ok
+FS579JOI,-26.27599,-48.83419,"Rua Iririu, 1070",0,0,0,2,-,-,ok
+FS580JOI,-26.21177,-48.82455,"Av. Jupiter, 890",0,1,1,1,-,-,ok
+FS581JOI,-26.34003,-48.82386,"Rua Monsenhor Gercino, 3120",0,0,0,1,x,-,ok
+FS582JOI,-26.28207,-48.83521,"Rua Carlos Benack, 590",0,0,1,2,-,-,ok
+FS583JOI,-26.2665,-48.81281,Rua das Cegonhas x Rua Frontin,0,0,0,1,x,-,ok
+FS584JOI,-26.29465,-48.85005,Rua Max Colin x Rua Blumenau,0,1,0,3,-,-,ok
+FS585JOI,-26.34054,-48.81631,Rua Monsenhor Gercino cruzamento com Rua Fátima,1,0,0,1,x,-,ok
+FS586JOI,-26.31625,-48.84526,Av. Getúlio Vargas x Rua Inácio Bastos,0,1,1,2,-,-,ok
+FS587JOI,-26268,-48.82313,"Rua Guaíra, 500",0,1,0,2,-,-,ok
+FS588JOI,-26.35414,-48.83134,"Avenida Paulo Schroeder, 1750",0,0,1,2,-,-,ok
+FS589JOI,-26.3554,-48.83879,Rua João Filete de Oliveira x Rua Dona Cezarina,0,1,1,1,x,x,ok
+FS590JOI,-26.36057,-48.83173,Av. Paulo Schroeder x Rua Boehmerwald,0,0,1,2,-,-,ok
+FS592JOI,-26.31388,-48.85139,Rua Rio Grande do Sul 500,0,1,1,2,-,-,ok
+FS593JOI,-26.27918,-48.84623,"Av. Aluisio Pires Condeixa, 2700",0,0,1,2,-,-,ok
+FS594JOI,-26.34213,-48.79601,"R. Monsenhor Gercino, 6396",0,1,0,1,-,-,ok
+FS595JOI,-26.28749,-48.90235,Rua XV de Novembro x Rua Rudolfo Baumer,0,1,0,2,-,-,ok
+FS596JOI,-26.28739,-48.84335,Av. José Vieira X Rua Itaiópolis,0,0,0,3,-,-,ok
+FS597JOI,-26.34302,-48.79466,"Rua Monsenhor Gercino, 6551",0,1,0,1,-,-,ok
+FS598JOI,-26.34446,-48.78225,"Av. Kurt Meinert, 1072",0,0,0,1,-,-,ok
+FS599JOI,-26.28206,-48.83903,Rua Iririu 246,1,0,0,2,-,-,ok
+FS600JOI,-26.31616,-48.84038,Av. Cel. Procópio Gomes X R. Inácio Bastos,0,0,2,2,x,-,ok
+FS601JOI,-26.27927,-48.8746,"Rua Dona Elza Meinert, 692",0,0,0,2,-,-,ok
+FS602JOI,-26.29228,-48.90069,"Rua Leopoldo Beninca, 365",0,1,1,2,-,-,ok
+FS603JOI,-26.33142,-48.84188,"Rua São Paulo, 2622",1,1,0,2,-,-,ok
+FS604JOI,-26.29288,-48.86251,"Rua Timbó, 1276",0,1,1,2,-,-,ok
+FS605JOI,-26.29194,-48.91173,"Rua São Firmino, 555",0,1,1,2,-,-,ok
+FS606JOI,-26.3068,-48.85483,"Rua Visconde de Taunay, 900",0,1,0,3,-,-,ok
+FS607JOI,-26.32713,-48.84559,"Rua Santa Catarina, 517",1,0,0,2,-,-,ok
+FS608JOI,-26.36188,-48.81267,"Rua Boehmerwald, 2224",0,0,0,1,x,-,ok
+FS609JOI,-26.31089,-48.85127,"Rua General Valgas Neves, 428",0,0,2,2,-,-,ok
+FS610JOI,-26.32577,-48.83619,Rua Florianópolis x Rua Guanabara,0,0,0,1,-,-,ok
+FS614JOI,-26.26435,-48.81949,"Rua Guaíra, 1053",0,1,0,2,-,-,ok
+FS615JOI,-26.37868,-48.84337,Av. Plácido Hugo de Oliveira Próx. Rua Santa Catarina,0,0,1,2,-,-,ok
+FS616JOI,-26.37648,-48.84158,Av. Plácido Hugo de Oliveira Próx. Rua Santa Catarina,0,0,1,2,-,-,ok
+FS617JOI,-26.28139,-48.81788,Av. Papa João XXlll x Rua Pasteur,0,1,0,2,-,-,ok
+FS618JOI,-26.27542,-48.81144,"Rua Albano Schmidt, 4952",0,1,0,2,-,-,ok
+FS619JOI,-26.31929,-48.81939,"Rua Guanabara, 2308",0,1,0,1,x,-,ok
+FS620JOI,-26.35175,-48.81974,"Rua João da Costa Jr., 1341",0,1,0,1,x,-,ok
+FS621JOI,-26.30295,-48.85354,"Rua Expedicionário Holz, 149",0,0,0,2,-,-,ok
+FS622JOI,-26.31953,-48.82636,"Rua Santo Agostinho, 156",1,1,0,2,-,-,ok
+FS623JOI,-26.29413,-48.85844,Rua Max Colin 1629,0,1,0,3,-,-,ok
+FS624JOI,-26.29332,-48.81484,"Rua Albano Schmidt, 2739",0,1,0,2,-,-,ok
+FS625JOI,-26.28891,-48.89504,"Rua XV de Novembro, 5001",0,1,0,2,-,-,ok
+FS626JOI,-26.30091,-48.82414,"Rua Pref. Helmuth Fallgatter, 1400",0,1,0,2,-,-,ok
+FS627JOI,-26.32193,-48.83217,"R. Nacar, 260",0,0,0,2,-,-,ok
+FS628JOI,-26.32847,-48.82315,"R. Teresópolis, 300",0,0,0,1,-,-,ok
+FS629JOI,-26.32454,-48.82229,"Rua Teresópolis, 460",0,0,0,1,-,-,ok
+FS630JOI,-26.33834,-48.82273,"Rua Anitápolis, 245",0,0,0,1,-,-,ok
+FS631JOI,-26.31459,-48.84534,Av. Getúlio Vargas X Rua Padre Kolb,0,0,2,3,-,-,ok
+FS632JOI,-26.29649,-48.8647,Rua Marquês de Olinda (R. Evaristo da Veiga) X Rua XV de Novembro,0,0,0,2,-,-,ok
+FS633JOI,-26.28678,-48.84984,Rua Blumenau nº1580,1,0,0,2,-,-,ok
+FS634JOI,-26.30474,-48.82821,"Rua Pref. Helmuth Fallgatter, 791",0,1,0,2,-,-,ok
+FS635JOI,-26.29437,-48.81715,"Rua Pref. Helmuth Fallgatter, 2400",0,1,0,2,-,-,ok
+FS636JOI,-26.34397,-48.79379,"Rua Monsenhor Gercino , 6675",0,1,0,1,x,-,ok
+FS637JOI,-26.37948,-48.82497,"Rua Waldemiro José Borges, 3528",0,1,0,1,x,-,ok
+FS638JOI,-26.28697,-48.91079,"Rua XV de Novembro, 7800",0,1,0,2,-,-,ok
+FS639JOI,-26.29002,-48.81209,"Rua Albano Schmidt, 3200",0,1,0,2,-,-,ok
+FS640JOI,-26.33509,-48.8168,"Rua Fátima, 542",0,0,0,1,x,-,ok
+FS641JOI,-26.28533,-48.81048,"Rua Pref. Helmuth Fallgatter, 3675",0,1,0,2,-,-,ok
+FS642JOI,-26.30914,-48.84296,"Rua São Paulo, 200",1,0,0,2,-,-,ok
+FS643JOI,-26.25956,-48.84651,"Rua Tenente Antônio João, 1937",0,1,0,2,-,-,ok
+FS644JOI,-26.28445,-48.85526,Rua Benjamin Constant 650,0,1,0,1,-,-,ok
+FS645JOI,-26.26871,-48.85593,"Rua Dona Francisca, 4565",0,1,0,1,-,-,ok
+FS646JOI,-26.32101,-48.81357,"Rua Guanabara, 3675",0,1,0,2,-,-,ok
+FS647JOI,-26.27927,-48.84741,"Av. Marcos Wehmuth, 2979",0,0,1,2,-,-,ok
+FS648JOI,"-26,28434","-48,84914",Dr. João Colin x Benjamin Constant,1,0,0,2,-,-,ok
+FS649JOI,-26.33829,-48.80539,Rua Monsenhor Gercino X Rua Jarivatuba,0,0,0,1,-,-,ok
+FS650JOI,-26.31468,-48.86154,Rua Ottokar Doerffel X Rua Marquês de Olinda (R. Otto Parucker),0,0,0,1,-,-,
+FS651JOI,-26.26892,-48.84537,"Rua Tenente Antônio João, 826",0,1,0,2,-,-,
+FS652JOI,-26.24187,-48.81944,"Rua Tuiutí, 3800",0,1,0,1,x,-,
+FS653JOI,-26.28913,-48.86434,"Rua Marquês de Olinda, 2841",0,0,1,1,x,-,
+FS654JOI,-26.35045,-48.83134,"Av. Paulo Schroeder, próx. 2100",0,0,1,2,-,-,
+FS655JOI,"-26,2745","-48,85019",Dr. João Colin x Presidente Prudente Moraes,1,0,0,2,-,-,
+FS661JOI,-26.36438,-48.82948,"Rua Adolfo da Veiga, 400",0,1,0,1,-,-,
+FS661JOI,-26.36438,-48.82948,"Rua Adolfo da Veiga, 400",0,1,0,1,-,-,
