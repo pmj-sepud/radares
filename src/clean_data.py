@@ -53,17 +53,10 @@ def create_clean_wb(raw_wb):
     sheet = raw_wb.sheets()[0]
     len_data_block = 96
 
-    #check date
+    #get date and equip from inside the file
     date_parts = sheet.cell(2,1).value.split("\n")[0].split(" ")[1].replace("/", "-").split("-")
     file_date = date_parts[2] + "-" + date_parts[1].zfill(2) + "-" + date_parts[0].zfill(2) #%Y-%m-%d
-
-    if file_date != title_date:
-        raise Exception("Data dentro do arquivo não bate com data no nome do arquivo ")
-
-    #check equip
     equip = sheet.cell(5,1).value.split("-")[0]
-    if equip != file.split("/")[0]:
-        raise Exception("Equipamento dentro do arquivo não bate com equipamento no nome do arquivo ")
 
     #Create clean file
     clean_wb = create_empty_wb()
@@ -142,10 +135,17 @@ def create_clean_wb(raw_wb):
 
     return clean_wb
 
-def process_clean_wb(clean_wb, s3_client, meta):
-    #Create pandas DataFrame
+def process_clean_wb(clean_wb, s3_client, processed_bucket, meta):
+    start = time.time()
     stream = BytesIO()
     clean_wb.save(stream)
+    stream.seek(0)
+    sheet = xlrd.open_workbook(file_contents=stream.read()).sheets()[0]
+    file_date = sheet.cell(1,0).value 
+    equip = sheet.cell(1,1).value
+
+
+    #Create pandas DataFrame
     stream.seek(0)
     df = (pd.read_excel(stream)
           .assign(pubdate = lambda df: pd.to_datetime(df.pubdate))
@@ -173,45 +173,37 @@ def process_clean_wb(clean_wb, s3_client, meta):
     '''  
     
     df_equipment_fnd_slct = pd.read_sql(query_df_equipment_fnd,meta.bind,params=d_equipment,index_col=['id'])        
-    if not df_equipment_fnd_slct.index.empty: raise Exception("Equipamento já existe no banco de dados!")
+    if not df_equipment_fnd_slct.index.empty:
+        print("Equipamento já existe no banco de dados!")
+    else:
+        print('insert data in equipment_files table')
+        df_equipment.to_sql("equipment_files", schema="radars", con=meta.bind, if_exists="append", index=False)
 
-    print('insert data in equipment_files table')
-    df_equipment.to_sql("equipment_files", schema="radars", con=meta.bind, if_exists="append", index=False)
+        
+        #SECOND STEP: GET ID of equipment_files BY read_sql with 3 main keys: file_name,pubdate,equipment and date_created in aws
+        query_df_equipment = '''
+            SELECT id FROM radars.equipment_files
+                WHERE file_name = %(file_name)s
+                AND pubdate = %(pubdate)s
+                AND equipment = %(equipment)s
+                AND date_created = %(date_created)s
+        '''    
+        
+        #THIRD STEP: PUT the new equipment_files_id in a new column and INSERT the flows of it
+        df_equipment_slct = pd.read_sql(query_df_equipment,meta.bind,params=d_equipment,index_col=['id'])
+        df_equipment_idx = df_equipment_slct.index.values[0]
+        df_flows_equipment = df.assign(equipment_files_id=df_equipment_idx)
 
-    
-    #SECOND STEP: GET ID of equipment_files BY read_sql with 3 main keys: file_name,pubdate,equipment and date_created in aws
-    query_df_equipment = '''
-        SELECT id FROM radars.equipment_files
-            WHERE file_name = %(file_name)s
-            AND pubdate = %(pubdate)s
-            AND equipment = %(equipment)s
-            AND date_created = %(date_created)s
-    '''    
-    
-    #THIRD STEP: PUT the new equipment_files_id in a new column and INSERT the flows of it
-    df_equipment_slct = pd.read_sql(query_df_equipment,meta.bind,params=d_equipment,index_col=['id'])
-    df_equipment_idx = df_equipment_slct.index.values[0]
-    df_flows_equipment = df.assign(equipment_files_id=df_equipment_idx)
+        # REMOVED COLUMNS pubdate, equipment, direction, 
+        df_flows_equipment = df_flows_equipment.drop(['pubdate', 'equipment'], axis=1)
 
-    # REMOVED COLUMNS pubdate, equipment, direction, 
-    df_flows_equipment = df_flows_equipment.drop(['pubdate', 'equipment'], axis=1)
-
-    
-    print('insert data in flows table')
-    df_flows_equipment.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
-
-    ''' 
-    If we got here, the database has been populated and the clean document has been successfully stored.
-    Only now should we proceed and delete the file from the incoming bucket, whether got some problems, the incoming will be 
-    cleanning next time
-    ''' 
-    print('deleting object from AWS S3 incoming')
-    del_response = s3_client.delete_object(Bucket=raw_bucket, Key=key)
-
-    
-    end = time.time()
-    duration = str(round(end - start))
-    print("Successfully stored equip " + equip + ", on date " + file_date + ", in " + duration + " s.")
+        
+        print('insert data in flows table')
+        df_flows_equipment.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
+       
+        end = time.time()
+        duration = str(round(end - start))
+        print("Successfully stored equip " + equip + ", on date " + file_date + ", in " + duration + " s.")
 
 
 if __name__ == '__main__':
@@ -257,7 +249,15 @@ if __name__ == '__main__':
         
         clean_wb = create_clean_wb(wb)
 
-        process_clean_wb(clean_wb, s3, meta)
+        process_clean_wb(clean_wb, s3, processed_bucket, meta)
+
+        ''' 
+        If we got here, the database has been populated and the clean document has been successfully stored.
+        Only now should we proceed and delete the file from the incoming bucket, whether got some problems, the incoming will be 
+        cleanning next time
+        ''' 
+        print('deleting object from AWS S3 incoming')
+        del_response = s3.delete_object(Bucket=raw_bucket, Key=key)
 
                   
         
