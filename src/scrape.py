@@ -21,9 +21,11 @@ username = os.environ.get("USER_NAME")
 password = os.environ.get("PASSWORD")
 auth_url = os.environ.get("URL")
 raw_bucket = os.environ.get("S3BUCKET_RAW")
-equipment = project_dir + os.environ.get("EQUIPAMENTOS")
+equipment = os.path.join(project_dir,os.environ.get("EQUIPAMENTOS"))
 url = os.environ.get("URL_ENDPOINT")
 
+import pdb
+pdb.set_trace()
 
 #Connect to S3 and check existing reports
 s3 = boto3.client('s3')
