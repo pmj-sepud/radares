@@ -19,13 +19,9 @@ sys.path.append(project_dir)
 dotenv_path = os.path.join(project_dir,'.env')
 dotenv.load_dotenv(dotenv_path)
 
-
-
-
-
-def create_clean_file():
-    clean_file = xlwt.Workbook(encoding='utf-8')
-    tab = clean_file.add_sheet('tab1')
+def create_empty_wb():
+    empty_wb = xlwt.Workbook(encoding='utf-8')
+    tab = empty_wb.add_sheet('tab1')
     tab.write(0, 0, 'pubdate')
     tab.write(0, 1, 'equipment')
     tab.write(0, 2, 'direction')
@@ -43,7 +39,7 @@ def create_clean_file():
     tab.write(0, 14, 'speed_100_up')
     tab.write(0, 15, 'total')
 
-    return clean_file
+    return empty_wb
 
 def clean_direction(df):
     df.direction = df.direction.str.split(pat="/", n=1).str.get(1)
@@ -51,48 +47,10 @@ def clean_direction(df):
                                          "^S$": "Sul",
                                          "^L$": "Leste",
                                          "^O$": "Oeste"}, regex=True)
-    return df   
+    return df
 
-
-s3 = boto3.client('s3')
-raw_bucket="test-monitran-incoming"
-# raw_bucket = os.environ.get("S3BUCKET_RAW")
-processed_bucket = os.environ.get("S3BUCKET_PROC")
-
-print("Iterate over all s3 incoming objects")
-all_incoming_objects = []
-paginator = s3.get_paginator('list_objects')
-page_iterator = paginator.paginate(Bucket=raw_bucket)
-for page in page_iterator:
-    all_incoming_objects += [c["Key"] for c in page["Contents"] if "xlsx" in c["Key"]]
-
-#Database connection
-DATABASE = {
-    'drivername': os.environ.get("RADARS_DRIVERNAME"),
-    'host': os.environ.get("RADARS_HOST"), 
-    'port': os.environ.get("RADARS_PORT"),
-    'username': os.environ.get("RADARS_USERNAME"),
-    'password': os.environ.get("RADARS_PASSWORD"),
-    'database': os.environ.get("RADARS_DATABASE"),
-    }
-
-db_url = URL(**DATABASE)
-engine = create_engine(db_url)
-meta = MetaData()
-meta.bind = engine
-meta.reflect(schema="radars")
-
-#Create cleaned workbook
-for file in all_incoming_objects:
-    start = time.time()
-    print("Begin processing file:", file)
-    #Read raw file
-    equip, date = file.split("/")
-    title_date = date.split(".")[0]
-    key = file
-    obj = s3.get_object(Bucket=raw_bucket, Key=key)
-    wb = xlrd.open_workbook(file_contents=obj['Body'].read())
-    sheet = wb.sheets()[0]
+def create_clean_wb(raw_wb):
+    sheet = raw_wb.sheets()[0]
     len_data_block = 96
 
     #check date
@@ -108,8 +66,8 @@ for file in all_incoming_objects:
         raise Exception("Equipamento dentro do arquivo não bate com equipamento no nome do arquivo ")
 
     #Create clean file
-    clean_file = create_clean_file()
-    tab = clean_file.get_sheet("tab1")
+    clean_wb = create_empty_wb()
+    tab = clean_wb.get_sheet("tab1")
 
     #Define template type
     if (sheet.nrows==109) and (sheet.cell(105,1).value.strip() == "Total Geral"):
@@ -119,8 +77,7 @@ for file in all_incoming_objects:
     elif (sheet.nrows==205) and (sheet.cell(201,1).value.strip() == "Total Geral"):
         template = 3
     else:
-        print("No template was found for ", equip, file_date)
-        continue
+        raise Exception("No template was found for " + equip + file_date)
 
     if template == 1:
         len_data_block = 96
@@ -181,11 +138,14 @@ for file in all_incoming_objects:
             tab.write(write_row, 12, flow81)
             tab.write(write_row, 13, flow91)
             tab.write(write_row, 14, flow100)
-            tab.write(write_row, 15, flowTotal)          
+            tab.write(write_row, 15, flowTotal)
 
+    return clean_wb
+
+def process_clean_wb(clean_wb, s3_client, meta):
     #Create pandas DataFrame
     stream = BytesIO()
-    clean_file.save(stream)
+    clean_wb.save(stream)
     stream.seek(0)
     df = (pd.read_excel(stream)
           .assign(pubdate = lambda df: pd.to_datetime(df.pubdate))
@@ -196,7 +156,7 @@ for file in all_incoming_objects:
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False)
     write_key = equip + "/" + file_date + '.csv'
-    response = s3.put_object(Body=csv_buffer.getvalue(), Bucket=processed_bucket, Key=write_key)
+    response = s3_client.put_object(Body=csv_buffer.getvalue(), Bucket=processed_bucket, Key=write_key)
     
     date_created_value = response.get('ResponseMetadata').get('HTTPHeaders').get('date')
     date_created_timestamp = time.mktime(datetime.datetime.strptime(date_created_value, '%a, %d %b %Y %H:%M:%S GMT').timetuple())
@@ -246,9 +206,58 @@ for file in all_incoming_objects:
     cleanning next time
     ''' 
     print('deleting object from AWS S3 incoming')
-    del_response = s3.delete_object(Bucket=raw_bucket, Key=key)
+    del_response = s3_client.delete_object(Bucket=raw_bucket, Key=key)
 
     
     end = time.time()
     duration = str(round(end - start))
     print("Successfully stored equip " + equip + ", on date " + file_date + ", in " + duration + " s.")
+
+
+if __name__ == '__main__':
+
+    s3 = boto3.client('s3')
+    raw_bucket="test-monitran-incoming"
+    # raw_bucket = os.environ.get("S3BUCKET_RAW")
+    processed_bucket = os.environ.get("S3BUCKET_PROC")
+
+    print("Iterate over all s3 incoming objects")
+    all_incoming_objects = []
+    paginator = s3.get_paginator('list_objects')
+    page_iterator = paginator.paginate(Bucket=raw_bucket)
+    for page in page_iterator:
+        all_incoming_objects += [c["Key"] for c in page["Contents"] if "xlsx" in c["Key"]]
+
+    #Database connection
+    DATABASE = {
+        'drivername': os.environ.get("RADARS_DRIVERNAME"),
+        'host': os.environ.get("RADARS_HOST"), 
+        'port': os.environ.get("RADARS_PORT"),
+        'username': os.environ.get("RADARS_USERNAME"),
+        'password': os.environ.get("RADARS_PASSWORD"),
+        'database': os.environ.get("RADARS_DATABASE"),
+        }
+
+    db_url = URL(**DATABASE)
+    engine = create_engine(db_url)
+    meta = MetaData()
+    meta.bind = engine
+    meta.reflect(schema="radars")
+
+    #Create cleaned workbook
+    for file in all_incoming_objects:
+        start = time.time()
+        print("Begin processing file:", file)
+        #Read raw file
+        equip, date = file.split("/")
+        title_date = date.split(".")[0]
+        key = file
+        obj = s3.get_object(Bucket=raw_bucket, Key=key)
+        wb = xlrd.open_workbook(file_contents=obj['Body'].read())
+        
+        clean_wb = create_clean_wb(wb)
+
+        process_clean_wb(clean_wb, s3, meta)
+
+                  
+        
