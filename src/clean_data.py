@@ -238,17 +238,12 @@ if __name__ == '__main__':
 
     #Create cleaned workbook
     for file in all_incoming_objects:
-        start = time.time()
         print("Begin processing file:", file)
         #Read raw file
-        equip, date = file.split("/")
-        title_date = date.split(".")[0]
-        key = file
-        obj = s3.get_object(Bucket=raw_bucket, Key=key)
+        obj = s3.get_object(Bucket=raw_bucket, Key=file)
         wb = xlrd.open_workbook(file_contents=obj['Body'].read())
         
         clean_wb = create_clean_wb(wb)
-
         process_clean_wb(clean_wb, s3, processed_bucket, meta)
 
         ''' 
@@ -257,7 +252,7 @@ if __name__ == '__main__':
         cleanning next time
         ''' 
         print('deleting object from AWS S3 incoming')
-        del_response = s3.delete_object(Bucket=raw_bucket, Key=key)
+        del_response = s3.delete_object(Bucket=raw_bucket, Key=file)
 
                   
         

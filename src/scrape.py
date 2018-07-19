@@ -104,8 +104,6 @@ for equip in equip_list:
             'status': 'processed'
             })
     except Exception as e:
-        import pdb
-        pdb.set_trace()
         data['S3RAWOBJECT']['equipment'].append({
             'name': equip,
             'dateTime': str(data_execucao),
