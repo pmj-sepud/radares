@@ -208,9 +208,8 @@ def process_clean_wb(clean_wb, s3_client, processed_bucket, meta):
 
 if __name__ == '__main__':
 
-    s3 = boto3.client('s3')
-    raw_bucket="test-monitran-incoming"
-    # raw_bucket = os.environ.get("S3BUCKET_RAW")
+    s3 = boto3.client('s3')    
+    raw_bucket = os.environ.get("S3BUCKET_RAW")
     processed_bucket = os.environ.get("S3BUCKET_PROC")
 
     print("Iterate over all s3 incoming objects")
