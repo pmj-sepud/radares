@@ -174,7 +174,7 @@ def process_clean_wb(clean_wb, s3_client, processed_bucket, meta):
     
     df_equipment_fnd_slct = pd.read_sql(query_df_equipment_fnd,meta.bind,params=d_equipment,index_col=['id'])        
     if not df_equipment_fnd_slct.index.empty:
-        print("Equipamento já existe no banco de dados!")
+        print("Equipament already exists!")
     else:
         print('insert data in equipment_files table')
         df_equipment.to_sql("equipment_files", schema="radars", con=meta.bind, if_exists="append", index=False)
