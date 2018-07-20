@@ -136,17 +136,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--initial_date")
     parser.add_argument("-f", "--final_date")
+    parser.add_argument("-l", "--last_three_days", type=bool)
     args = parser.parse_args()
 
+    if args.last_three_days:
+        final_date = yesterday
+        initial_date = final_date - datetime.timedelta(days=2)
 
-    initial_date = validate_date(args.initial_date)
-    final_date = validate_date(args.final_date)
-    while not initial_date:
-        initial_date_arg = input("Data Inicial (DD/MM/YYYY): ")
-        initial_date = validate_date(initial_date_arg)
-    while not final_date:
-        final_date_arg = input("Data Final (DD/MM/YYYY): ")
-        final_date = validate_date(final_date_arg)
+    else:
+        initial_date = validate_date(args.initial_date)
+        final_date = validate_date(args.final_date)
+        while not initial_date:
+            initial_date_arg = input("Data Inicial (DD/MM/YYYY): ")
+            initial_date = validate_date(initial_date_arg)
+        while not final_date:
+            final_date_arg = input("Data Final (DD/MM/YYYY): ")
+            final_date = validate_date(final_date_arg)
 
     s3 = boto3.client('s3')
 
