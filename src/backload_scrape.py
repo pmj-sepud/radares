@@ -38,7 +38,13 @@ def validate_date(date_arg):
     # validade informations pass through arguments
     date_format = '%d/%m/%Y'
     try:     
-        datetime_obj = datetime.datetime.strptime(date_arg, date_format).date()
+        datetime_obj = datetime.datetime.strptime(date_arg, date_format).date()        
+        now = datetime.date.today().strftime("%d/%m/%Y")
+        datetime_obj_today = datetime.datetime.strptime(now, date_format).date()
+        
+        if datetime_obj > datetime_obj_today:
+            raise Exception("Data informada maior que a data de hoje: "+ date_arg) 
+
     except ValueError:
         print ('Data inicial está em formato inválido, deveria ser dia/mês/ano! Data enviada:', date_arg)
         return None
