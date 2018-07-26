@@ -197,8 +197,16 @@ def process_clean_wb(clean_wb, s3_client, processed_bucket, meta):
         # REMOVED COLUMNS pubdate, equipment, direction, 
         df_flows_equipment = df_flows_equipment.drop(['pubdate', 'equipment'], axis=1)
 
-        
+        # CREATED another 2 dataframes from time_range splitted values AND REMOVED COLUMN time_range
+        # sample: 00:00 as 00:00
+        df_cl_time_range = df_flows_equipment['time_range']
+        df_flows_equipment['initial_time']  = df_cl_time_range.str.slice(0,5)
+        df_flows_equipment['end_time'] = df_cl_time_range.str.slice(9,14)        
+    
         print('insert data in flows table')
+
+        # CHANGE DATAFRAME: SPLIT time_range to 2 new columns: initial_time and end_time BEFORE insert on table
+
         df_flows_equipment.to_sql("flows", schema="radars", con=meta.bind, if_exists="append", index=False)
        
         end = time.time()

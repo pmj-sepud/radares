@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS radars.flows
 "id"                                SERIAL PRIMARY KEY NOT NULL,
 "equipment_files_id"                BIGINT NOT NULL REFERENCES radars.equipment_files (id),
 "direction"                         direction,
-"time_range"                        VARCHAR(20),
+"initial_time"                      TIME, /* future improvements: Storage this as TIME */
+"end_time"                        	TIME, /* future improvements: Storage this as TIME */
 "speed_00_10"                       INTEGER, /*through analysis we inferred that the date was timezone aware*/
 "speed_11_20"                       INTEGER,
 "speed_21_30"                       INTEGER,
