@@ -6,3 +6,5 @@ log/*
 src/ANOTACOES
 src/NOTES
 *__pycache__
+.vscode
+venv
