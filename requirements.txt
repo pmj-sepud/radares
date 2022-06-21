@@ -11,7 +11,7 @@ idna==2.7
 jmespath==0.9.3
 mkl-fft==1.0.2
 mkl-random==1.0.1
-numpy==1.14.5
+numpy==1.22.0
 pandas==0.23.3
 psycopg2==2.7.5
 pycparser==2.18
